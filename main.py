@@ -46,6 +46,7 @@ def parse_args():
     args.add_argument("-l", "--lr", type=float, default=1e-3)
     args.add_argument("-g2hop", "--get_2hop", type=bool, default=False)
     args.add_argument("-u2hop", "--use_2hop", type=bool, default=True)
+    args.add_argument("-p2hop", "--partial_2hop", type=bool, default=False)
     args.add_argument("-outfolder", "--output_folder",
                   default="out", help="Folder name to save the models.")
 
@@ -67,6 +68,8 @@ def parse_args():
     # arguments for convolutions network
     args.add_argument("-b_conv", "--batch_size_conv", type=int,
                       default=128, help="Batch size for conv")
+    args.add_argument("-alpha_conv", "--alpha_conv", type=float,
+                  default=0.2, help="LeakyRelu alphas for conv layer")
     args.add_argument("-neg_s_conv", "--valid_invalid_ratio_conv", type=int, default=40,
                       help="Ratio of valid to invalid triples for convolution training")
     args.add_argument("-o", "--out_channels", type=int, default=500,
@@ -98,7 +101,7 @@ def load_data(args):
             len(relation2id), args.embedding_size)
         print("Initialised relations and entities randomly")
 
-    corpus_gat = Corpus(args, train_data, validation_data, test_data, entity2id, relation2id, headTailSelector, args.batch_size_gat, args.valid_invalid_ratio_gat, unique_entities_train)
+    corpus_gat = Corpus(args, train_data, validation_data, test_data, entity2id, relation2id, headTailSelector, args.batch_size_gat, args.valid_invalid_ratio_gat, unique_entities_train, args.get_2hop)
     corpus_conv = Corpus(args, train_data, validation_data, test_data, entity2id, relation2id, headTailSelector, args.batch_size_conv, args.valid_invalid_ratio_conv, unique_entities_train)
     return corpus_gat, corpus_conv, torch.FloatTensor(entity_embeddings), torch.FloatTensor(relation_embeddings)
 
@@ -185,7 +188,7 @@ def train_gat(args):
 
     current_batch_2hop_indices = torch.tensor([])
     if(args.use_2hop):
-	    current_batch_2hop_indices = Corpus_gat.get_batch_nhop_neighbors_all(
+	    current_batch_2hop_indices = Corpus_gat.get_batch_nhop_neighbors_all(args,
 	        Corpus_gat.unique_entities_train, node_neighbors_2hop)
 
     if CUDA:
@@ -263,19 +266,18 @@ def train_conv(args):
 
     print("Defining model")
     model_gat = SpKBGATModified(entity_embeddings, relation_embeddings, args.entity_out_dim, args.entity_out_dim,
-                                args.drop_GAT, args.drop_conv, args.alpha, args.alpha_conv,
-                                args.nheads_GAT, args.out_channels, args.doping_factor)
+                                args.drop_GAT, args.alpha, args.nheads_GAT)
     print("Only Conv model trained")
     model_conv = SpKBGATConvOnly(entity_embeddings, relation_embeddings, args.entity_out_dim, args.entity_out_dim,
                                  args.drop_GAT, args.drop_conv, args.alpha, args.alpha_conv,
-                                 args.nheads_GAT, args.out_channels, args.doping_factor)
+                                 args.nheads_GAT, args.out_channels)
 
     if CUDA:
         model_conv.cuda()
         model_gat.cuda()
 
     model_gat.load_state_dict(torch.load(
-        './checkpoints/wn/{}/trained_{}.pth'.format(args.type, args.epochs_gat - 1)))
+        './checkpoints/wn/{}/trained_{}.pth'.format(args.output_folder, args.epochs_gat - 1)))
     model_conv.final_entity_embeddings = model_gat.final_entity_embeddings
     model_conv.final_relation_embeddings = model_gat.final_relation_embeddings
 
@@ -350,11 +352,14 @@ def train_conv(args):
 def evaluate_gat(args, unique_entities):
     print("\nEvaluating GAT...")
     model_gat = SpKBGATModified(entity_embeddings, relation_embeddings, args.entity_out_dim, args.entity_out_dim,
-                                args.drop_GAT, args.drop_conv, args.alpha, args.alpha_conv,
-                                args.nheads_GAT, args.out_channels, args.doping_factor)
+                                args.drop_GAT, args.alpha, args.nheads_GAT)
 
-    model_gat.load_state_dict(torch.load(
-        './checkpoints/wn/{0}/trained_{1}.pth'.format(args.output_folder, args.epochs_gat - 1)))
+    if 'FB' in args.data:
+        model_gat.load_state_dict(torch.load(
+            './checkpoints/fb/{0}/trained_{1}.pth'.format(args.output_folder, args.epochs_gat - 1)))
+    else:
+        model_gat.load_state_dict(torch.load(
+            './checkpoints/wn/{0}/trained_{1}.pth'.format(args.output_folder, args.epochs_gat - 1)))
 
     model_gat.cuda()
     with torch.no_grad():
@@ -364,10 +369,14 @@ def evaluate_gat(args, unique_entities):
 def evaluate_conv(args, unique_entities):
     model_conv = SpKBGATConvOnly(entity_embeddings, relation_embeddings, args.entity_out_dim, args.entity_out_dim,
                                  args.drop_GAT, args.drop_conv, args.alpha, args.alpha_conv,
-                                 args.nheads_GAT, args.out_channels, args.doping_factor)
+                                 args.nheads_GAT, args.out_channels)
 
-    model_conv.load_state_dict(torch.load(
-        './checkpoints/wn/{0}/conv/trained_{1}.pth'.format(args.output_folder, args.epochs_conv - 1)))
+    if 'FB' in args.data:
+        model_conv.load_state_dict(torch.load(
+            './checkpoints/fb/{0}/conv/trained_{1}.pth'.format(args.output_folder, args.epochs_conv - 1)))
+    else:
+        model_conv.load_state_dict(torch.load(
+            './checkpoints/wn/{0}/conv/trained_{1}.pth'.format(args.output_folder, args.epochs_conv - 1)))
 
     model_conv.cuda()
     with torch.no_grad():
@@ -375,8 +384,8 @@ def evaluate_conv(args, unique_entities):
 
 
 train_gat(args)
-evaluate_gat(args, Corpus_.unique_entities_train)
+evaluate_gat(args, Corpus_gat.unique_entities_train)
 
 train_conv(args)
-evaluate_conv(args, Corpus_.unique_entities_train)
+evaluate_conv(args, Corpus_conv.unique_entities_train)
 

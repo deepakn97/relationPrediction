@@ -9,7 +9,7 @@ import random
 
 class Corpus:
     def __init__(self, args, train_data, validation_data, test_data, entity2id,
-                 relation2id, headTailSelector, batch_size, valid_to_invalid_samples_ratio, unique_entities_train):
+                 relation2id, headTailSelector, batch_size, valid_to_invalid_samples_ratio, unique_entities_train, get_2hop=False):
         self.train_triples = train_data[0]
         # self.train_adj = train_data[1]    # tuple of (rows, cols, data) format of sparse tensor
         # Converting to sparse tensor
@@ -37,7 +37,7 @@ class Corpus:
         # self.lb = LabelBinarizer()
         # self.lb.fit(range(len(self.entity2id)))
 
-        if(args.get_2hop):
+        if(get_2hop):
             self.graph = self.get_graph()
             self.node_neighbors_2hop = self.get_further_neighbors()
         # self.node_neighbors_3hop = self.get_further_neighbors(3)
@@ -490,7 +490,7 @@ class Corpus:
         return np.array(batch_source_triples).astype(np.int32)
 
 
-    def get_batch_nhop_neighbors_all(self, batch_sources, node_neighbors, nbd_size=2):
+    def get_batch_nhop_neighbors_all(self, args, batch_sources, node_neighbors, nbd_size=2):
         batch_source_triples = []
         print("length of unique_entities ", len(batch_sources))
         count = 0
@@ -500,13 +500,18 @@ class Corpus:
                 nhop_list = node_neighbors[source][nbd_size]
 
                 for i, tup in enumerate(nhop_list):
-                    count += 1
-                    batch_source_triples.append([source, nhop_list[i][0][-1], nhop_list[i][0][0],
-                                                 nhop_list[i][1][0]])
+                    if(args.partial_2hop and i >= 1):
+                        break
 
-                    # for freebase obly
-                    # batch_source_triples.append([source, nhop_list[i][0][-1], nhop_list[i][0][0],
+                    count += 1
+
+                    # if 'FB' in args.data:
+                    # # for freebase obly
+                    #     batch_source_triples.append([source, nhop_list[i][0][-1], nhop_list[i][0][0],
                     #                              nhop_list[i][1]])
+                    # else:
+                    batch_source_triples.append([source, nhop_list[i][0][-1], nhop_list[i][0][0],
+                                             nhop_list[i][1][0]])
                     # print(batch_source_triples)
         print("count ", count)
         # print("len of batch_source_triples ", len(batch_source_triples))
@@ -595,7 +600,7 @@ class Corpus:
                 new_x_batch_head, model.final_entity_embeddings, model.final_relation_embeddings)
             # scores_head = model.batch_test(new_x_batch_head)
             sorted_scores_head, sorted_indices_head = torch.sort(
-                scores_head.view(-1), dim=-1, descending=True)
+                scores_head.view(-1), dim=-1, descending=False)
             # Just search for zeroth index in the sorted scores, we appended valid triple at top
             ranks_head.append(
                 np.where(sorted_indices_head.cpu().numpy() == 0)[0][0] + 1)
@@ -605,12 +610,12 @@ class Corpus:
                 new_x_batch_tail, model.final_entity_embeddings, model.final_relation_embeddings)
             # scores_tail = model.batch_test(new_x_batch_tail)
             sorted_scores_tail, sorted_indices_tail = torch.sort(
-                scores_tail.view(-1), dim=-1, descending=True)
+                scores_tail.view(-1), dim=-1, descending=False)
             # Just search for zeroth index in the sorted scores, we appended valid triple at top
             ranks_tail.append(
                 np.where(sorted_indices_tail.cpu().numpy() == 0)[0][0] + 1)
             reciprocal_ranks_tail.append(1.0 / ranks_tail[-1])
-            # print("sample - ", ranks_head[-1], ranks_tail[-1])
+            print("sample - ", ranks_head[-1], ranks_tail[-1])
 
         # print("Current iteration Ranks are {}".format(ranks))
         for i in range(len(ranks_head)):
@@ -889,7 +894,7 @@ class Corpus:
                     np.where(sorted_indices_tail.cpu().numpy() == 0)[0][0] + 1)
                 reciprocal_ranks_tail.append(1.0 / ranks_tail[-1])
                 print("sample - ", ranks_head[-1], ranks_tail[-1])
-                print("time taken ", time.time()-start_time_it)
+                # print("time taken ", time.time()-start_time_it)
 
             # print("Current iteration Ranks are {}".format(ranks))
             for i in range(len(ranks_head)):

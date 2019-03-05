@@ -185,7 +185,6 @@ class SpKBGATConvOnly(nn.Module):
         self.nheads_GAT_1 = nheads_GAT[0]
         self.entity_out_dim_2 = entity_out_dim[1]
         self.nheads_GAT_2 = nheads_GAT[1]
-        self.doping_factor = doping_factor
 
         # Properties of Relations
         self.num_relation = initial_relation_emb.shape[0]
