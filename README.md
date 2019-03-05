@@ -9,61 +9,63 @@ This program provides the implementation of the attention based model for the kn
 
 Please download miniconda from above link and create an environment using the following command:
 
-        `conda env create -f pytorch35.yml`
+        conda env create -f pytorch35.yml
 
 Activate the environment before executing the program as follows:
 
-        `source activate pytorch35`
+        source activate pytorch35
 
 ### Training
-To run the program:
-        
-        python3 train.py --embedding_dim <int> --num_filters <int> --learning_rate <float> --name <dataset_name> [--useConstantInit] --model_name <name_of_saved_model>
 
-**Required parameters:** 
+**Parameters:** 
 
-`--data`: Specify the folder of the dataset. Default: Wordnet 
+`--data`: Specify the folder of the dataset. 
 
-`--epochs`: Number of filters. Default: 3600
+`--epochs_gat`: Number of epochs for gat training.
 
-`--learning_rate`: Initial learning rate.
+`--epochs_conv`: Number of epochs for convolution training.
 
-`--name`: Dataset name (WN18RR or FB15k-237).
+`--lr`: Initial learning rate.
 
-`--useConstantInit`: Initialize filters by [0.1, 0.1, -0.1]. Otherwise, initialize filters by a truncated normal distribution.
+`--weight_decay_gat`: L2 reglarization for gat.
 
-`--model_name`: Name of saved models.
+`--weight_decay_conv`: L2 reglarization for conv.
 
-**Optional parameters:** 
+`--get_2hop`: Get a pickle object of 2 hop neighbors.
 
-`--l2_reg_lambda`: L2 regularizaion lambda (Default: 0.001).
+`--use_2hop`: Use 2 hop neighbors for training.  
+
+`--output_folder`: Path of output folder for saving models.
   
-`--dropout_keep_prob`: Dropout keep probability (Default: 1.0).
+`--batch_size_gat`: Batch size for gat model.
+
+`--valid_invalid_ratio_gat`: Ratio of valid to invalid triples for GAT training.
   
-`--num_epochs`: Number of training epochs (Default: 200).
+`--drop_gat`: Dropout probability for attention layer.
 
-`--run_folder`: Specify directory path to save trained models.
+`--alpha`: LeakyRelu alphas for attention layer.
 
-`--batch_size`: Batch size.
+`--nhead_GAT`: Number of heads for multihead attention.
 
-### Reproduce the ConvKB results 
+`--margin`: Margin used in hinge loss.
 
-To reproduce the ConvKB results published in the paper:      
+`--batch_size_conv`: Batch size for convolution model.
+
+`--valid_invalid_ratio_conv`: Ratio of valid to invalid triples for conv training.
+
+`--out_channels`: Number of output channels in conv layer.
+
+`--drop_conv`: Dropout probability for conv layer.
+
+### Reproducing results 
+
+To reproduce the results published in the paper:      
                 
-        $ python train.py --embedding_dim 100 --num_filters 50 --learning_rate 0.000005 --name FB15k-237 --useConstantInit --model_name fb15k237
+* **Wordnet**
         
-        $ python train.py --embedding_dim 50 --num_filters 500 --learning_rate 0.0001 --name WN18RR --model_name wn18rr --saveStep 50
-        
-### Evaluation metrics
+        $ python3 main.py --get_2hop True
 
-File `eval.py` provides ranking-based scores as evaluation metrics, including the mean rank, the mean reciprocal rank and Hits@10 in a setting protocol "Filtered".
+* **Freebase**
 
-Files `evalFB15k-237.sh` and `evalWN18RR.sh` contain evaluation commands. Depending on the memory resources, you should change the value of `--num_splits` to a suitable value to get a faster process. To get the results (supposing `num_splits = 8`):
+        $ python3 main.py --data ./data/FB15k-237/ --epochs_gat 3000 --epochs_conv 150 --weight_decay_gat 0.00001 --get_2hop True --partial_2hop True --batch_size_gat 272115 --margin 1 --out_channels 50 --drop_conv 0.3
         
-        $ python eval.py --embedding_dim 100 --num_filters 50 --name FB15k-237 --useConstantInit --model_name fb15k237 --num_splits 8 --decode
-        
-        $ python eval.py --embedding_dim 50 --num_filters 500 --name WN18RR --model_name wn18rr --num_splits 8 --decode
-         
-## Acknowledgments     
-
-I would like to thank Denny Britz for implementing a CNN for text classification in TensorFlow.
