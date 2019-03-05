@@ -35,6 +35,8 @@ Activate the environment before executing the program as follows:
 
 `--use_2hop`: Use 2 hop neighbors for training.  
 
+`--partial_2hop`: Use only 1 2-hop neighbor per node for training.
+
 `--output_folder`: Path of output folder for saving models.
   
 `--batch_size_gat`: Batch size for gat model.
@@ -50,6 +52,8 @@ Activate the environment before executing the program as follows:
 `--margin`: Margin used in hinge loss.
 
 `--batch_size_conv`: Batch size for convolution model.
+
+`--alpha_conv`: LeakyRelu alphas for conv layer.
 
 `--valid_invalid_ratio_conv`: Ratio of valid to invalid triples for conv training.
 
@@ -68,4 +72,5 @@ To reproduce the results published in the paper:
 * **Freebase**
 
         $ python3 main.py --data ./data/FB15k-237/ --epochs_gat 3000 --epochs_conv 150 --weight_decay_gat 0.00001 --get_2hop True --partial_2hop True --batch_size_gat 272115 --margin 1 --out_channels 50 --drop_conv 0.3
+
         
