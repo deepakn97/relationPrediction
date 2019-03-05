@@ -8,7 +8,7 @@ import random
 
 
 class Corpus:
-    def __init__(self, train_data, validation_data, test_data, entity2id,
+    def __init__(self, args, train_data, validation_data, test_data, entity2id,
                  relation2id, headTailSelector, batch_size, valid_to_invalid_samples_ratio, unique_entities_train):
         self.train_triples = train_data[0]
         # self.train_adj = train_data[1]    # tuple of (rows, cols, data) format of sparse tensor
@@ -37,8 +37,9 @@ class Corpus:
         # self.lb = LabelBinarizer()
         # self.lb.fit(range(len(self.entity2id)))
 
-        # self.graph = self.get_graph()
-        # self.node_neighbors_2hop = self.get_further_neighbors()
+        if(args.get_2hop):
+            self.graph = self.get_graph()
+            self.node_neighbors_2hop = self.get_further_neighbors()
         # self.node_neighbors_3hop = self.get_further_neighbors(3)
         # self.get_prob()
 
@@ -499,9 +500,7 @@ class Corpus:
                 nhop_list = node_neighbors[source][nbd_size]
 
                 for i, tup in enumerate(nhop_list):
-                    if i >= 1:
-                        count += 1
-                        break
+                    count += 1
                     batch_source_triples.append([source, nhop_list[i][0][-1], nhop_list[i][0][0],
                                                  nhop_list[i][1][0]])
 

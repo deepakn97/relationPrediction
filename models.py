@@ -9,7 +9,7 @@ CUDA = torch.cuda.is_available()  # checking cuda availability
 
 
 class SpGAT(nn.Module):
-    def __init__(self, num_nodes, nfeat, nhid, relation_dim, dropout, alpha, nheads, doping_factor):
+    def __init__(self, num_nodes, nfeat, nhid, relation_dim, dropout, alpha, nheads):
         """
             Sparse version of GAT
             nfeat -> Entity Input Embedding dimensions
@@ -22,10 +22,9 @@ class SpGAT(nn.Module):
         super(SpGAT, self).__init__()
         self.dropout = dropout
         self.dropout_layer = nn.Dropout(self.dropout)
-        self.attentions = [SpGraphAttentionLayerNoRelation(num_nodes, nfeat,
+        self.attentions = [SpGraphAttentionLayer(num_nodes, nfeat,
                                                  nhid,
                                                  relation_dim,
-                                                 doping_factor,
                                                  dropout=dropout,
                                                  alpha=alpha,
                                                  concat=True)
@@ -38,21 +37,19 @@ class SpGAT(nn.Module):
         self.W = nn.Parameter(torch.zeros(size=(relation_dim, nheads * nhid)))
         nn.init.xavier_uniform_(self.W.data, gain=1.414)
 
-        # self.out_att = SpGraphAttentionLayer(num_nodes, nhid * nheads,
-        #                                      nheads * nhid, nheads * nhid,
-        #                                      doping_factor,
-        #                                      dropout=dropout,
-        #                                      alpha=alpha,
-        #                                      concat=False
-        #                                      )
-
-        self.out_att = SpGraphAttentionLayerNoRelation(num_nodes, nhid * nheads,
+        self.out_att = SpGraphAttentionLayer(num_nodes, nhid * nheads,
                                              nheads * nhid, nheads * nhid,
-                                             doping_factor,
                                              dropout=dropout,
                                              alpha=alpha,
                                              concat=False
                                              )
+
+        # self.out_att = SpGraphAttentionLayerNoRelation(num_nodes, nhid * nheads,
+        #                                      nheads * nhid, nheads * nhid,
+        #                                      dropout=dropout,
+        #                                      alpha=alpha,
+        #                                      concat=False
+        #                                      )
 
     def forward(self, Corpus_, batch_inputs, entity_embeddings, relation_embed, 
             edge_list, edge_type, edge_embed, edge_list_nhop, edge_type_nhop):
@@ -78,7 +75,8 @@ class SpGAT(nn.Module):
 
 class SpKBGATModified(nn.Module):
     def __init__(self, initial_entity_emb, initial_relation_emb, entity_out_dim, relation_out_dim,
-                 drop_GAT, drop_conv, alpha, alpha_conv, nheads_GAT, conv_out_channels, doping_factor):
+                 drop_GAT, alpha, nheads_GAT):
+
         '''Sparse version of KBGAT
         entity_in_dim -> Entity Input Embedding dimensions
         entity_out_dim  -> Entity Output Embedding dimensions, passed as a list
@@ -95,7 +93,6 @@ class SpKBGATModified(nn.Module):
         self.nheads_GAT_1 = nheads_GAT[0]
         self.entity_out_dim_2 = entity_out_dim[1]
         self.nheads_GAT_2 = nheads_GAT[1]
-        self.doping_factor = doping_factor
 
         # Properties of Relations
         self.num_relation = initial_relation_emb.shape[0]
@@ -103,10 +100,7 @@ class SpKBGATModified(nn.Module):
         self.relation_out_dim_1 = relation_out_dim[0]
 
         self.drop_GAT = drop_GAT
-        self.drop_conv = drop_conv
         self.alpha = alpha      # For leaky relu
-        self.alpha_conv = alpha_conv
-        self.conv_out_channels = conv_out_channels
 
         self.final_entity_embeddings = nn.Parameter(
             torch.randn(self.num_nodes, self.entity_out_dim_1 * self.nheads_GAT_1))
@@ -118,7 +112,7 @@ class SpKBGATModified(nn.Module):
         self.relation_embeddings = nn.Parameter(initial_relation_emb)
 
         self.sparse_gat_1 = SpGAT(self.num_nodes, self.entity_in_dim, self.entity_out_dim_1, self.relation_dim,
-                                  self.drop_GAT, self.alpha, self.nheads_GAT_1, self.doping_factor)
+                                  self.drop_GAT, self.alpha, self.nheads_GAT_1)
 
         self.W_entities = nn.Parameter(torch.zeros(size=(self.entity_in_dim, self.entity_out_dim_1 * self.nheads_GAT_1)))
         nn.init.xavier_uniform_(self.W_entities.data, gain=1.414)
@@ -164,7 +158,7 @@ class SpKBGATModified(nn.Module):
             mask.unsqueeze(-1).expand_as(out_entity_1) * out_entity_1
 
         out_entity_1 = F.normalize(out_entity_1, p=2, dim=1)
-        out_relation_1 = F.normalize(out_relation_1, p=2, dim=1)
+        # out_relation_1 = F.normalize(out_relation_1, p=2, dim=1)
 
         self.final_entity_embeddings.data = out_entity_1.data
         self.final_relation_embeddings.data = out_relation_1.data
@@ -174,7 +168,7 @@ class SpKBGATModified(nn.Module):
 
 class SpKBGATConvOnly(nn.Module):
     def __init__(self, initial_entity_emb, initial_relation_emb, entity_out_dim, relation_out_dim,
-                 drop_GAT, drop_conv, alpha, alpha_conv, nheads_GAT, conv_out_channels, doping_factor):
+                 drop_GAT, drop_conv, alpha, alpha_conv, nheads_GAT, conv_out_channels):
         '''Sparse version of KBGAT
         entity_in_dim -> Entity Input Embedding dimensions
         entity_out_dim  -> Entity Output Embedding dimensions, passed as a list

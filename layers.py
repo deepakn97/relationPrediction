@@ -248,7 +248,7 @@ class SpGraphAttentionLayer(nn.Module):
     Sparse version GAT layer, similar to https://arxiv.org/abs/1710.10903
     """
 
-    def __init__(self, num_nodes, in_features, out_features, nrela_dim, doping_factor, dropout, alpha, concat=True):
+    def __init__(self, num_nodes, in_features, out_features, nrela_dim, dropout, alpha, concat=True):
         super(SpGraphAttentionLayer, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -256,7 +256,6 @@ class SpGraphAttentionLayer(nn.Module):
         self.alpha = alpha
         self.concat = concat
         self.nrela_dim = nrela_dim
-        self.doping_factor = doping_factor
 
         self.a = nn.Parameter(torch.zeros(
             size=(out_features, 2 * in_features + nrela_dim)))
