@@ -64,7 +64,10 @@ Activate the environment before executing the program as follows:
 ### Reproducing results 
 
 To reproduce the results published in the paper:      
-                
+When running for first time, run preparation script with:
+
+        $ sh prepare.sh
+
 * **Wordnet**
         
         $ python3 main.py --get_2hop True
