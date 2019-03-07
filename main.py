@@ -345,7 +345,7 @@ def train_conv(args):
             epoch, sum(epoch_loss) / len(epoch_loss), time.time() - start_time))
         epoch_losses.append(sum(epoch_loss) / len(epoch_loss))
 
-        save_model(model_gat, args.data, epoch,
+        save_model(model_conv, args.data, epoch,
                    args.output_folder + "/conv")
 
 
