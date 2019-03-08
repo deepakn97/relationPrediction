@@ -141,8 +141,8 @@ class SpKBGATModified(nn.Module):
         self.entity_embeddings.data = F.normalize(
             self.entity_embeddings.data, p=2, dim=1).detach()
 
-        self.relation_embeddings.data = F.normalize(
-            self.relation_embeddings.data, p=2, dim=1)
+        # self.relation_embeddings.data = F.normalize(
+        #     self.relation_embeddings.data, p=2, dim=1)
 
         out_entity_1, out_relation_1 = self.sparse_gat_1(
             Corpus_, batch_inputs, self.entity_embeddings, self.relation_embeddings, 
