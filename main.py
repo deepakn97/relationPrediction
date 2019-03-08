@@ -380,7 +380,7 @@ def evaluate_conv(args, unique_entities):
 
     model_conv.cuda()
     with torch.no_grad():
-        Corpus_conv.get_validation_pred(model_conv, unique_entities)
+        Corpus_conv.get_validation_pred(args, model_conv, unique_entities)
 
 
 train_gat(args)

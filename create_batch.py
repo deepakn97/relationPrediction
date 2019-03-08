@@ -746,7 +746,7 @@ class Corpus:
 
 
 
-    def get_validation_pred(self, model, unique_entities):
+    def get_validation_pred(self, args, model, unique_entities):
         average_hits_at_100_head, average_hits_at_100_tail = [], []
         average_hits_at_ten_head, average_hits_at_ten_tail = [], []
         average_hits_at_three_head, average_hits_at_three_tail = [], []
@@ -818,36 +818,38 @@ class Corpus:
                 import math
                 # Have to do this, because it doesn't fit in memory
 
-                # num_triples_each_shot = int(
-                #     math.ceil(new_x_batch_head.shape[0] / 10))
+                if 'WN' in args.data:
+                    num_triples_each_shot = int(
+                        math.ceil(new_x_batch_head.shape[0] / 4))
 
-                # scores1_head = model.batch_test(torch.LongTensor(
-                #     new_x_batch_head[:num_triples_each_shot, :]).cuda())
-                # scores2_head = model.batch_test(torch.LongTensor(
-                #     new_x_batch_head[num_triples_each_shot: 2 * num_triples_each_shot, :]).cuda())
-                # scores3_head = model.batch_test(torch.LongTensor(
-                #     new_x_batch_head[2 * num_triples_each_shot: 3 * num_triples_each_shot, :]).cuda())
-                # scores4_head = model.batch_test(torch.LongTensor(
-                #     new_x_batch_head[3 * num_triples_each_shot: 4 * num_triples_each_shot, :]).cuda())
-                # scores5_head = model.batch_test(torch.LongTensor(
-                #     new_x_batch_head[4 * num_triples_each_shot: 5 * num_triples_each_shot, :]).cuda())
-                # scores6_head = model.batch_test(torch.LongTensor(
-                #     new_x_batch_head[5 * num_triples_each_shot: 6 * num_triples_each_shot, :]).cuda())
-                # scores7_head = model.batch_test(torch.LongTensor(
-                #     new_x_batch_head[6 * num_triples_each_shot: 7 * num_triples_each_shot, :]).cuda())
-                # scores8_head = model.batch_test(torch.LongTensor(
-                #     new_x_batch_head[7 * num_triples_each_shot: 8 * num_triples_each_shot, :]).cuda())
-                # scores9_head = model.batch_test(torch.LongTensor(
-                #     new_x_batch_head[8 * num_triples_each_shot: 9 * num_triples_each_shot, :]).cuda())
-                # scores10_head = model.batch_test(torch.LongTensor(
-                #     new_x_batch_head[9 * num_triples_each_shot:, :]).cuda())
+                    scores1_head = model.batch_test(torch.LongTensor(
+                        new_x_batch_head[:num_triples_each_shot, :]).cuda())
+                    scores2_head = model.batch_test(torch.LongTensor(
+                        new_x_batch_head[num_triples_each_shot: 2 * num_triples_each_shot, :]).cuda())
+                    scores3_head = model.batch_test(torch.LongTensor(
+                        new_x_batch_head[2 * num_triples_each_shot: 3 * num_triples_each_shot, :]).cuda())
+                    scores4_head = model.batch_test(torch.LongTensor(
+                        new_x_batch_head[3 * num_triples_each_shot: 4 * num_triples_each_shot, :]).cuda())
+                    # scores5_head = model.batch_test(torch.LongTensor(
+                    #     new_x_batch_head[4 * num_triples_each_shot: 5 * num_triples_each_shot, :]).cuda())
+                    # scores6_head = model.batch_test(torch.LongTensor(
+                    #     new_x_batch_head[5 * num_triples_each_shot: 6 * num_triples_each_shot, :]).cuda())
+                    # scores7_head = model.batch_test(torch.LongTensor(
+                    #     new_x_batch_head[6 * num_triples_each_shot: 7 * num_triples_each_shot, :]).cuda())
+                    # scores8_head = model.batch_test(torch.LongTensor(
+                    #     new_x_batch_head[7 * num_triples_each_shot: 8 * num_triples_each_shot, :]).cuda())
+                    # scores9_head = model.batch_test(torch.LongTensor(
+                    #     new_x_batch_head[8 * num_triples_each_shot: 9 * num_triples_each_shot, :]).cuda())
+                    # scores10_head = model.batch_test(torch.LongTensor(
+                    #     new_x_batch_head[9 * num_triples_each_shot:, :]).cuda())
 
-                # scores_head = torch.cat(
-                #     [scores1_head, scores2_head, scores3_head, scores4_head, 
-                #     scores5_head, scores6_head, scores7_head, scores8_head, 
-                #     scores9_head, scores10_head], dim=0)
+                    scores_head = torch.cat(
+                        [scores1_head, scores2_head, scores3_head, scores4_head], dim = 0)
+                        #scores5_head, scores6_head, scores7_head, scores8_head, 
+                        #cores9_head, scores10_head], dim=0)
+                else:
+                    scores_head = model.batch_test(new_x_batch_head)
 
-                scores_head = model.batch_test(new_x_batch_head)
                 sorted_scores_head, sorted_indices_head = torch.sort(
                     scores_head.view(-1), dim=-1, descending=True)
                 # Just search for zeroth index in the sorted scores, we appended valid triple at top
@@ -856,36 +858,40 @@ class Corpus:
                 reciprocal_ranks_head.append(1.0 / ranks_head[-1])
 
                 # Tail part here
-                # num_triples_each_shot = int(
-                #     math.ceil(new_x_batch_tail.shape[0] / 10))
 
-                # scores1_tail = model.batch_test(torch.LongTensor(
-                #     new_x_batch_tail[:num_triples_each_shot, :]).cuda())
-                # scores2_tail = model.batch_test(torch.LongTensor(
-                #     new_x_batch_tail[num_triples_each_shot: 2 * num_triples_each_shot, :]).cuda())
-                # scores3_tail = model.batch_test(torch.LongTensor(
-                #     new_x_batch_tail[2 * num_triples_each_shot: 3 * num_triples_each_shot, :]).cuda())
-                # scores4_tail = model.batch_test(torch.LongTensor(
-                #     new_x_batch_tail[3 * num_triples_each_shot: 4 * num_triples_each_shot, :]).cuda())
-                # scores5_tail = model.batch_test(torch.LongTensor(
-                #     new_x_batch_tail[4 * num_triples_each_shot: 5 * num_triples_each_shot, :]).cuda())
-                # scores6_tail = model.batch_test(torch.LongTensor(
-                #     new_x_batch_tail[5 * num_triples_each_shot: 6 * num_triples_each_shot, :]).cuda())
-                # scores7_tail = model.batch_test(torch.LongTensor(
-                #     new_x_batch_tail[6 * num_triples_each_shot: 7 * num_triples_each_shot, :]).cuda())
-                # scores8_tail = model.batch_test(torch.LongTensor(
-                #     new_x_batch_tail[7 * num_triples_each_shot: 8 * num_triples_each_shot, :]).cuda())
-                # scores9_tail = model.batch_test(torch.LongTensor(
-                #     new_x_batch_tail[8 * num_triples_each_shot: 9 * num_triples_each_shot, :]).cuda())
-                # scores10_tail = model.batch_test(torch.LongTensor(
-                #     new_x_batch_tail[9 * num_triples_each_shot:, :]).cuda())
+                if 'WN' in args.data:
+                    num_triples_each_shot = int(
+                        math.ceil(new_x_batch_tail.shape[0] / 4))
 
-                # scores_tail = torch.cat(
-                #     [scores1_tail, scores2_tail, scores3_tail, scores4_tail, 
-                #     scores5_tail, scores6_tail, scores7_tail, scores8_tail, 
-                #     scores9_tail, scores10_tail], dim=0)
+                    scores1_tail = model.batch_test(torch.LongTensor(
+                        new_x_batch_tail[:num_triples_each_shot, :]).cuda())
+                    scores2_tail = model.batch_test(torch.LongTensor(
+                        new_x_batch_tail[num_triples_each_shot: 2 * num_triples_each_shot, :]).cuda())
+                    scores3_tail = model.batch_test(torch.LongTensor(
+                        new_x_batch_tail[2 * num_triples_each_shot: 3 * num_triples_each_shot, :]).cuda())
+                    scores4_tail = model.batch_test(torch.LongTensor(
+                        new_x_batch_tail[3 * num_triples_each_shot: 4 * num_triples_each_shot, :]).cuda())
+                    # scores5_tail = model.batch_test(torch.LongTensor(
+                    #     new_x_batch_tail[4 * num_triples_each_shot: 5 * num_triples_each_shot, :]).cuda())
+                    # scores6_tail = model.batch_test(torch.LongTensor(
+                    #     new_x_batch_tail[5 * num_triples_each_shot: 6 * num_triples_each_shot, :]).cuda())
+                    # scores7_tail = model.batch_test(torch.LongTensor(
+                    #     new_x_batch_tail[6 * num_triples_each_shot: 7 * num_triples_each_shot, :]).cuda())
+                    # scores8_tail = model.batch_test(torch.LongTensor(
+                    #     new_x_batch_tail[7 * num_triples_each_shot: 8 * num_triples_each_shot, :]).cuda())
+                    # scores9_tail = model.batch_test(torch.LongTensor(
+                    #     new_x_batch_tail[8 * num_triples_each_shot: 9 * num_triples_each_shot, :]).cuda())
+                    # scores10_tail = model.batch_test(torch.LongTensor(
+                    #     new_x_batch_tail[9 * num_triples_each_shot:, :]).cuda())
 
-                scores_tail = model.batch_test(new_x_batch_tail)
+                    scores_tail = torch.cat(
+                        [scores1_tail, scores2_tail, scores3_tail, scores4_tail], dim = 0)
+                    #     scores5_tail, scores6_tail, scores7_tail, scores8_tail, 
+                    #     scores9_tail, scores10_tail], dim=0)
+
+                else:
+                    scores_tail = model.batch_test(new_x_batch_tail)
+                    
                 sorted_scores_tail, sorted_indices_tail = torch.sort(
                     scores_tail.view(-1), dim=-1, descending=True)
                 # print("current tail scores -> ",sorted_scores_tail)
