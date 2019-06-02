@@ -1,7 +1,6 @@
 import torch
 
-from models import SpKBGATModified, SpKBGATConvOnly, SpKBGCN
-from layers import ConvKB, ConvE
+from models import SpKBGATModified, SpKBGATConvOnly
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
