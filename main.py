@@ -1,7 +1,6 @@
 import torch
 
-from models import SpKBGATModified, SpKBGATConvOnly, SpKBGCN
-from layers import ConvKB, ConvE
+from models import SpKBGATModified, SpKBGATConvOnly
 from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
@@ -65,7 +64,7 @@ def parse_args():
     args.add_argument("-margin", "--margin", type=float,
                       default=5, help="Margin used in hinge loss")
 
-    # arguments for convolutions network
+    # arguments for convolution network
     args.add_argument("-b_conv", "--batch_size_conv", type=int,
                       default=128, help="Batch size for conv")
     args.add_argument("-alpha_conv", "--alpha_conv", type=float,
@@ -176,8 +175,6 @@ def train_gat(args):
     if CUDA:
         model_gat.cuda()
 
-    # Optimizer -> Adam, Can also use sparse version of Adam, but have to add L2 norm loss separately
-
     optimizer = torch.optim.Adam(
         model_gat.parameters(), lr=args.lr, weight_decay=args.weight_decay_gat)
 
@@ -206,7 +203,7 @@ def train_gat(args):
         random.shuffle(Corpus_.train_triples)
         Corpus_.train_indices = np.array(
             list(Corpus_.train_triples)).astype(np.int32)
-        print("Training set shuffled, length is ", Corpus_.train_indices.shape)
+        
         model_gat.train()  # getting in training mode
         start_time = time.time()
         epoch_loss = []
@@ -230,8 +227,7 @@ def train_gat(args):
                 train_indices = Variable(torch.LongTensor(train_indices))
                 train_values = Variable(torch.FloatTensor(train_values))
 
-            # forward pass       
-
+            # forward pass
             entity_embed, relation_embed = model_gat(
                 Corpus_, Corpus_.train_adj_matrix, train_indices, current_batch_2hop_indices)
 
@@ -281,8 +277,6 @@ def train_conv(args):
     model_conv.final_entity_embeddings = model_gat.final_entity_embeddings
     model_conv.final_relation_embeddings = model_gat.final_relation_embeddings
 
-    # Optimizer -> Adam, Can also use sparse version of Adam, but have to add L2 norm loss separately
-
     Corpus_.batch_size = args.batch_size_conv
     Corpus_.invalid_valid_ratio = int(args.valid_invalid_ratio_conv)
 
@@ -302,7 +296,7 @@ def train_conv(args):
         random.shuffle(Corpus_.train_triples)
         Corpus_.train_indices = np.array(
             list(Corpus_.train_triples)).astype(np.int32)
-        print("Training set shuffled, length is ", Corpus_.train_indices.shape)
+        
         model_conv.train()  # getting in training mode
         start_time = time.time()
         epoch_loss = []
@@ -351,24 +345,6 @@ def train_conv(args):
         save_model(model_conv, args.data, epoch,
                    args.output_folder + "/conv")
 
-
-def evaluate_gat(args, unique_entities):
-    print("\nEvaluating GAT...")
-    model_gat = SpKBGATModified(entity_embeddings, relation_embeddings, args.entity_out_dim, args.entity_out_dim,
-                                args.drop_GAT, args.alpha, args.nheads_GAT)
-
-    if 'FB' in args.data:
-        model_gat.load_state_dict(torch.load(
-            './checkpoints/fb/{0}/trained_{1}.pth'.format(args.output_folder, args.epochs_gat - 1)))
-    else:
-        model_gat.load_state_dict(torch.load(
-            './checkpoints/wn/{0}/trained_{1}.pth'.format(args.output_folder, args.epochs_gat - 1)))
-
-    model_gat.cuda()
-    with torch.no_grad():
-        Corpus_.gat_eval_GAT(model_gat, unique_entities)
-
-
 def evaluate_conv(args, unique_entities):
     model_conv = SpKBGATConvOnly(entity_embeddings, relation_embeddings, args.entity_out_dim, args.entity_out_dim,
                                  args.drop_GAT, args.drop_conv, args.alpha, args.alpha_conv,
@@ -385,9 +361,7 @@ def evaluate_conv(args, unique_entities):
     with torch.no_grad():
         Corpus_.get_validation_pred(args, model_conv, unique_entities)
 
-
 train_gat(args)
-evaluate_gat(args, Corpus_.unique_entities_train)
 
 train_conv(args)
 evaluate_conv(args, Corpus_.unique_entities_train)
