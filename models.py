@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import time
-from layers import RelationGraphAttentionLayer, SpGraphAttentionLayer, ConvKB, SpGraphAttentionLayerNoRelation
+from layers import SpGraphAttentionLayer, ConvKB
 
 CUDA = torch.cuda.is_available()  # checking cuda availability
 
@@ -43,13 +43,6 @@ class SpGAT(nn.Module):
                                              alpha=alpha,
                                              concat=False
                                              )
-
-        # self.out_att = SpGraphAttentionLayerNoRelation(num_nodes, nhid * nheads,
-        #                                      nheads * nhid, nheads * nhid,
-        #                                      dropout=dropout,
-        #                                      alpha=alpha,
-        #                                      concat=False
-        #                                      )
 
     def forward(self, Corpus_, batch_inputs, entity_embeddings, relation_embed, 
             edge_list, edge_type, edge_embed, edge_list_nhop, edge_type_nhop):
@@ -158,8 +151,7 @@ class SpKBGATModified(nn.Module):
             mask.unsqueeze(-1).expand_as(out_entity_1) * out_entity_1
 
         out_entity_1 = F.normalize(out_entity_1, p=2, dim=1)
-        # out_relation_1 = F.normalize(out_relation_1, p=2, dim=1)
-
+        
         self.final_entity_embeddings.data = out_entity_1.data
         self.final_relation_embeddings.data = out_relation_1.data
 
@@ -206,12 +198,7 @@ class SpKBGATConvOnly(nn.Module):
         self.convKB = ConvKB(self.entity_out_dim_1 * self.nheads_GAT_1, 3, 1,
                              self.conv_out_channels, self.drop_conv, self.alpha_conv)
 
-        # self.entity_embeddings = nn.Embedding(self.num_nodes, 100)
-        # self.relation_embed = nn.Embedding(238, 100)
-
-        # self.sparse_gat_1 = SpGAT(self.num_nodes, self.entity_in_dim, self.entity_out_dim_1, self.relation_dim,
-        #                           self.drop_GAT, self.alpha, self.nheads_GAT_1, self.doping_factor)
-
+        
     def forward(self, Corpus_, adj, batch_inputs):
         conv_input = torch.cat((self.final_entity_embeddings[batch_inputs[:, 0], :].unsqueeze(1), self.final_relation_embeddings[
             batch_inputs[:, 1]].unsqueeze(1), self.final_entity_embeddings[batch_inputs[:, 2], :].unsqueeze(1)), dim=1)
@@ -223,84 +210,3 @@ class SpKBGATConvOnly(nn.Module):
             batch_inputs[:, 1]].unsqueeze(1), self.final_entity_embeddings[batch_inputs[:, 2], :].unsqueeze(1)), dim=1)
         out_conv = self.convKB(conv_input)
         return out_conv
-
-
-
-
-
-'''class RelationGAT(nn.Module):
-    def __init__(self, nfeat, nhid, entity_dim, dropout, alpha, nheads):
-        """Dense version of GAT."""
-        super(RelationGAT, self).__init__()
-        self.dropout = dropout
-        self.dropout_layer = nn.Dropout(self.dropout)
-        self.attentions = [RelationGraphAttentionLayer(
-            nfeat, nhid, entity_dim, dropout=dropout, alpha=alpha, concat=True) for _ in range(nheads)]
-        for i, attention in enumerate(self.attentions):
-            self.add_module('attention_{}'.format(i), attention)
-
-        self.W = nn.Parameter(torch.zeros(size=(entity_dim, nheads * nhid)))
-        nn.init.xavier_uniform_(self.W.data, gain=1.414)
-
-        self.out_att = RelationGraphAttentionLayer(
-            nhid * nheads, nhid * nheads, nhid * nheads, dropout=dropout, alpha=alpha, concat=False)
-
-    def forward(self, x, entity_embeds, adj):
-        x = self.dropout_layer(x)
-        x = torch.cat([att(x, entity_embeds, adj)
-                       for att in self.attentions], dim=1)
-
-        entity_embeds = entity_embeds.view(adj.shape[0]**2, -1)
-        final_entity_embed = entity_embeds.mm(self.W)
-        entity_embeds = final_entity_embed.view(
-            adj.shape[0], adj.shape[0], -1)
-
-        x = self.dropout_layer(x)
-        x = F.elu(self.out_att(x, entity_embeds, adj))
-        return x'''
-
-
-class SpKBGCN(nn.Module):
-    def __init__(self, initial_entity_emb, initial_relation_emb, entity_out_dim, drop_GCN, alpha):
-        '''Sparse version of KBGAT
-        entity_in_dim -> Entity Input Embedding dimensions
-        entity_out_dim  -> Entity Output Embedding dimensions, passed as a list
-        num_relation -> number of unique relations
-        relation_dim -> Relation Embedding dimensions
-        num_nodes -> number of nodes in the Graph
-        nheads_GAT -> Used for Multihead attention, passed as a list '''
-
-        super().__init__()
-
-        self.num_nodes = initial_entity_emb.shape[0]
-        self.entity_in_dim = initial_entity_emb.shape[1]
-        self.num_relation = initial_relation_emb.shape[0]
-        self.entity_out_dim_1 = entity_out_dim[0]
-        self.entity_out_dim_2 = entity_out_dim[1]
-
-        self.drop_GCN = drop_GCN
-        self.alpha = alpha      # For leaky relu
-        self.final_entity_embeddings = nn.Parameter(
-            torch.randn(self.num_nodes, self.entity_out_dim_2))
-
-        self.final_relation_embeddings = nn.Parameter(
-            torch.randn(self.num_relation, self.entity_out_dim_2))
-
-        self.embeddings = nn.Embedding.from_pretrained(
-            torch.cat((initial_entity_emb, initial_relation_emb), dim=0), freeze=False)
-
-        self.sparse_gcn_1 = SpGCNlayer(self.num_nodes, self.entity_in_dim, self.entity_out_dim_1,
-                                       self.drop_GCN, self.alpha)
-        self.sparse_gcn_2 = SpGCNlayer(self.num_nodes, self.entity_out_dim_1, self.entity_out_dim_2,
-                                       self.drop_GCN, self.alpha)
-
-    def forward(self, adj):
-        # getting edge list
-        out_1 = self.sparse_gcn_1(self.embeddings.weight, adj)
-        out_2 = self.sparse_gcn_2(out_1, adj)
-        out_2 = F.normalize(out_2, p=2, dim=1)
-
-        self.final_entity_embeddings.data = out_2[:self.num_nodes]
-        self.final_relation_embeddings.data = out_2[self.num_nodes:]
-
-        return out_2[:self.num_nodes], out_2[self.num_nodes:]
