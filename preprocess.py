@@ -22,9 +22,6 @@ def read_relation_from_id(filename='./data/WN18RR/relation2id.txt'):
                 relation, relation_id = line.strip().split(
                 )[0].strip(), line.strip().split()[1].strip()
                 relation2id[relation] = int(relation_id)
-
-    # relation corresponding to self loop
-    # relation2id['self_loop'] = len(relation2id)
     return relation2id
 
 
@@ -38,13 +35,6 @@ def init_embeddings(entity_file, relation_file):
     with open(relation_file) as f:
         for line in f:
             relation_emb.append([float(val) for val in line.strip().split()])
-
-    # Embedding for self-loop is taken to be average embedding of all relations
-    # emb_sel_loop = []
-    # for i in range(len(relation_emb[0])):
-    #     emb_sel_loop.append(
-    #         sum([emb[i] for emb in relation_emb]) / len(relation_emb))
-    # relation_emb.append(emb_sel_loop)
 
     return np.array(entity_emb, dtype=np.float32), np.array(relation_emb, dtype=np.float32)
 
@@ -90,16 +80,8 @@ def load_data(filename, entity2id, relation2id, is_unweigted=False, directed=Tru
             data.append(1)
         else:
             data.append(relation2id[relation])
-    # Appending self-loops to adjacency matrix
-    # for i in range(len(entity2id)):
-    #     rows.append(i)
-    #     cols.append(i)
-    #     if is_unweigted:
-    #         data.append(1)
-    #     else:
-    #         data.append(relation2id['self_loop'])  # corresponding to self-loop
+    
     print("number of unique_entities ->", len(unique_entities))
-    # print(len(rows))
     return triples_data, (rows, cols, data), list(unique_entities)
 
 
