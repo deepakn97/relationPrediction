@@ -55,6 +55,7 @@ def save_model(model, name, epoch, folder_name):
     else:
         raise Exception("No dataset by the name")
 
+
 gat_loss_func = nn.MarginRankingLoss(margin=0.5)
 
 

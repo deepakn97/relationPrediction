@@ -47,12 +47,13 @@ def parse_args():
     args.add_argument("-u2hop", "--use_2hop", type=bool, default=True)
     args.add_argument("-p2hop", "--partial_2hop", type=bool, default=False)
     args.add_argument("-outfolder", "--output_folder",
-                  default="out", help="Folder name to save the models.")
+                      default="out", help="Folder name to save the models.")
 
     # arguments for GAT
     args.add_argument("-b_gat", "--batch_size_gat", type=int,
                       default=86835, help="Batch size for GAT")
-    args.add_argument("-neg_s_gat", "--valid_invalid_ratio_gat", type=int,default=2, help="Ratio of valid to invalid triples for GAT training")
+    args.add_argument("-neg_s_gat", "--valid_invalid_ratio_gat", type=int,
+                      default=2, help="Ratio of valid to invalid triples for GAT training")
     args.add_argument("-drop_GAT", "--drop_GAT", type=float,
                       default=0.3, help="Dropout probability for SpGAT layer")
     args.add_argument("-alpha", "--alpha", type=float,
@@ -68,7 +69,7 @@ def parse_args():
     args.add_argument("-b_conv", "--batch_size_conv", type=int,
                       default=128, help="Batch size for conv")
     args.add_argument("-alpha_conv", "--alpha_conv", type=float,
-                  default=0.2, help="LeakyRelu alphas for conv layer")
+                      default=0.2, help="LeakyRelu alphas for conv layer")
     args.add_argument("-neg_s_conv", "--valid_invalid_ratio_conv", type=int, default=40,
                       help="Ratio of valid to invalid triples for convolution training")
     args.add_argument("-o", "--out_channels", type=int, default=500,
@@ -100,8 +101,9 @@ def load_data(args):
             len(relation2id), args.embedding_size)
         print("Initialised relations and entities randomly")
 
-    corpus = Corpus(args, train_data, validation_data, test_data, entity2id, relation2id, headTailSelector, args.batch_size_gat, args.valid_invalid_ratio_gat, unique_entities_train, args.get_2hop)
-    
+    corpus = Corpus(args, train_data, validation_data, test_data, entity2id, relation2id, headTailSelector,
+                    args.batch_size_gat, args.valid_invalid_ratio_gat, unique_entities_train, args.get_2hop)
+
     return corpus, torch.FloatTensor(entity_embeddings), torch.FloatTensor(relation_embeddings)
 
 
@@ -109,17 +111,17 @@ Corpus_, entity_embeddings, relation_embeddings = load_data(args)
 
 
 if(args.get_2hop):
-	file = args.data + "/2hop.pickle"
-	with open(file, 'wb') as handle:
-	    pickle.dump(Corpus_.node_neighbors_2hop, handle,
-	                protocol=pickle.HIGHEST_PROTOCOL)
+    file = args.data + "/2hop.pickle"
+    with open(file, 'wb') as handle:
+        pickle.dump(Corpus_.node_neighbors_2hop, handle,
+                    protocol=pickle.HIGHEST_PROTOCOL)
 
 
 if(args.use_2hop):
-	print("Opening node_neighbors pickle object")
-	file = args.data + "/2hop.pickle"
-	with open(file, 'rb') as handle:
-	    node_neighbors_2hop = pickle.load(handle)
+    print("Opening node_neighbors pickle object")
+    file = args.data + "/2hop.pickle"
+    with open(file, 'rb') as handle:
+        node_neighbors_2hop = pickle.load(handle)
 
 entity_embeddings_copied = deepcopy(entity_embeddings)
 relation_embeddings_copied = deepcopy(relation_embeddings)
@@ -150,7 +152,7 @@ def batch_gat_loss(gat_loss_func, train_indices, entity_embed, relation_embed):
     source_embeds = entity_embed[neg_triples[:, 0]]
     relation_embeds = relation_embed[neg_triples[:, 1]]
     tail_embeds = entity_embed[neg_triples[:, 2]]
- 
+
     x = source_embeds + relation_embeds - tail_embeds
     neg_norm = torch.norm(x, p=1, dim=1)
 
@@ -185,8 +187,8 @@ def train_gat(args):
 
     current_batch_2hop_indices = torch.tensor([])
     if(args.use_2hop):
-	    current_batch_2hop_indices = Corpus_.get_batch_nhop_neighbors_all(args,
-	        Corpus_.unique_entities_train, node_neighbors_2hop)
+        current_batch_2hop_indices = Corpus_.get_batch_nhop_neighbors_all(args,
+                                                                          Corpus_.unique_entities_train, node_neighbors_2hop)
 
     if CUDA:
         current_batch_2hop_indices = Variable(
@@ -203,13 +205,14 @@ def train_gat(args):
         random.shuffle(Corpus_.train_triples)
         Corpus_.train_indices = np.array(
             list(Corpus_.train_triples)).astype(np.int32)
-        
+
         model_gat.train()  # getting in training mode
         start_time = time.time()
         epoch_loss = []
 
         if len(Corpus_.train_indices) % args.batch_size_gat == 0:
-            num_iters_per_epoch = len(Corpus_.train_indices) // args.batch_size_gat
+            num_iters_per_epoch = len(
+                Corpus_.train_indices) // args.batch_size_gat
         else:
             num_iters_per_epoch = (
                 len(Corpus_.train_indices) // args.batch_size_gat) + 1
@@ -296,13 +299,14 @@ def train_conv(args):
         random.shuffle(Corpus_.train_triples)
         Corpus_.train_indices = np.array(
             list(Corpus_.train_triples)).astype(np.int32)
-        
+
         model_conv.train()  # getting in training mode
         start_time = time.time()
         epoch_loss = []
 
         if len(Corpus_.train_indices) % args.batch_size_conv == 0:
-            num_iters_per_epoch = len(Corpus_.train_indices) // args.batch_size_conv
+            num_iters_per_epoch = len(
+                Corpus_.train_indices) // args.batch_size_conv
         else:
             num_iters_per_epoch = (
                 len(Corpus_.train_indices) // args.batch_size_conv) + 1
@@ -345,6 +349,7 @@ def train_conv(args):
         save_model(model_conv, args.data, epoch,
                    args.output_folder + "/conv")
 
+
 def evaluate_conv(args, unique_entities):
     model_conv = SpKBGATConvOnly(entity_embeddings, relation_embeddings, args.entity_out_dim, args.entity_out_dim,
                                  args.drop_GAT, args.drop_conv, args.alpha, args.alpha_conv,
@@ -361,8 +366,8 @@ def evaluate_conv(args, unique_entities):
     with torch.no_grad():
         Corpus_.get_validation_pred(args, model_conv, unique_entities)
 
+
 train_gat(args)
 
 train_conv(args)
 evaluate_conv(args, Corpus_.unique_entities_train)
-

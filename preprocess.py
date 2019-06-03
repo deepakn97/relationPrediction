@@ -80,7 +80,7 @@ def load_data(filename, entity2id, relation2id, is_unweigted=False, directed=Tru
             data.append(1)
         else:
             data.append(relation2id[relation])
-    
+
     print("number of unique_entities ->", len(unique_entities))
     return triples_data, (rows, cols, data), list(unique_entities)
 

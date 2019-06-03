@@ -10,13 +10,13 @@ class Corpus:
     def __init__(self, args, train_data, validation_data, test_data, entity2id,
                  relation2id, headTailSelector, batch_size, valid_to_invalid_samples_ratio, unique_entities_train, get_2hop=False):
         self.train_triples = train_data[0]
-        
+
         # Converting to sparse tensor
         adj_indices = torch.LongTensor(
             [train_data[1][0], train_data[1][1]])  # rows and columns
         adj_values = torch.LongTensor(train_data[1][2])
         self.train_adj_matrix = (adj_indices, adj_values)
-        
+
         # adjacency matrix is needed for train_data only, as GAT is trained for
         # training data
         self.validation_triples = validation_data[0]
@@ -71,7 +71,8 @@ class Corpus:
             self.batch_values = np.empty(
                 (self.batch_size * (self.invalid_valid_ratio + 1), 1)).astype(np.float32)
 
-            indices = range(self.batch_size * iter_num,self.batch_size * (iter_num + 1))
+            indices = range(self.batch_size * iter_num,
+                            self.batch_size * (iter_num + 1))
 
             self.batch_indices[:self.batch_size,
                                :] = self.train_indices[indices, :]
@@ -83,7 +84,7 @@ class Corpus:
             if self.invalid_valid_ratio > 0:
                 random_entities = np.random.randint(
                     0, len(self.entity2id), last_index * self.invalid_valid_ratio)
-                
+
                 # Precopying the same valid indices from 0 to batch_size to rest
                 # of the indices
                 self.batch_indices[last_index:(last_index * (self.invalid_valid_ratio + 1)), :] = np.tile(
@@ -228,8 +229,8 @@ class Corpus:
         graph = {}
         all_tiples = torch.cat([self.train_adj_matrix[0].transpose(
             0, 1), self.train_adj_matrix[1].unsqueeze(1)], dim=1)
-        
-	for data in all_tiples:
+
+        for data in all_tiples:
             source = data[1].data.item()
             target = data[0].data.item()
             value = data[2].data.item()
@@ -241,7 +242,6 @@ class Corpus:
                 graph[source][target] = value
         print("Graph created")
         return graph
-
 
     def bfs(self, graph, source, nbd_size=2):
         visit = {}
@@ -255,8 +255,8 @@ class Corpus:
 
         q = queue.Queue()
         q.put((source, -1))
-        
-	while(not q.empty()):
+
+        while(not q.empty()):
             top = q.get()
             if top[0] in graph.keys():
                 for target in graph[top[0]].keys():
@@ -266,7 +266,7 @@ class Corpus:
                         q.put((target, graph[top[0]][target]))
 
                         distance[target] = distance[top[0]] + 1
-                        
+
                         visit[target] = 1
                         if distance[target] > 2:
                             continue
@@ -314,7 +314,7 @@ class Corpus:
                 else:
                     neighbors[source] = {}
                     neighbors[source][distance] = temp_neighbors[distance]
-        
+
         print("time taken ", time.time() - start_time)
 
         print("length of neighbors dict is ", len(neighbors))
@@ -335,8 +335,8 @@ class Corpus:
 
                     count += 1
                     batch_source_triples.append([source, nhop_list[i][0][-1], nhop_list[i][0][0],
-                                             nhop_list[i][1][0]])
-                    
+                                                 nhop_list[i][1][0]])
+
         return np.array(batch_source_triples).astype(np.int32)
 
     def transe_scoring(self, batch_inputs, entity_embeddings, relation_embeddings):
@@ -347,7 +347,6 @@ class Corpus:
         x = torch.norm(x, p=1, dim=1)
         return x
 
-    
     def get_validation_pred(self, args, model, unique_entities):
         average_hits_at_100_head, average_hits_at_100_tail = [], []
         average_hits_at_ten_head, average_hits_at_ten_tail = [], []
@@ -358,7 +357,7 @@ class Corpus:
 
         for iters in range(1):
             start_time = time.time()
-	
+
             indices = [i for i in range(len(self.test_indices))]
             batch_indices = self.test_indices[indices, :]
             print("Sampled indices")
@@ -442,9 +441,9 @@ class Corpus:
                     #     new_x_batch_head[9 * num_triples_each_shot:, :]).cuda())
 
                     scores_head = torch.cat(
-                        [scores1_head, scores2_head, scores3_head, scores4_head], dim = 0)
-                        #scores5_head, scores6_head, scores7_head, scores8_head, 
-                        #cores9_head, scores10_head], dim=0)
+                        [scores1_head, scores2_head, scores3_head, scores4_head], dim=0)
+                    #scores5_head, scores6_head, scores7_head, scores8_head,
+                    # cores9_head, scores10_head], dim=0)
                 else:
                     scores_head = model.batch_test(new_x_batch_head)
 
@@ -483,22 +482,22 @@ class Corpus:
                     #     new_x_batch_tail[9 * num_triples_each_shot:, :]).cuda())
 
                     scores_tail = torch.cat(
-                        [scores1_tail, scores2_tail, scores3_tail, scores4_tail], dim = 0)
-                    #     scores5_tail, scores6_tail, scores7_tail, scores8_tail, 
+                        [scores1_tail, scores2_tail, scores3_tail, scores4_tail], dim=0)
+                    #     scores5_tail, scores6_tail, scores7_tail, scores8_tail,
                     #     scores9_tail, scores10_tail], dim=0)
 
                 else:
                     scores_tail = model.batch_test(new_x_batch_tail)
-                    
+
                 sorted_scores_tail, sorted_indices_tail = torch.sort(
                     scores_tail.view(-1), dim=-1, descending=True)
-                
+
                 # Just search for zeroth index in the sorted scores, we appended valid triple at top
                 ranks_tail.append(
                     np.where(sorted_indices_tail.cpu().numpy() == 0)[0][0] + 1)
                 reciprocal_ranks_tail.append(1.0 / ranks_tail[-1])
                 print("sample - ", ranks_head[-1], ranks_tail[-1])
-                
+
             for i in range(len(ranks_head)):
                 if ranks_head[i] <= 100:
                     hits_at_100_head = hits_at_100_head + 1
@@ -608,7 +607,7 @@ class Corpus:
         cumulative_hits_ten = (sum(average_hits_at_ten_head) / len(average_hits_at_ten_head)
                                + sum(average_hits_at_ten_tail) / len(average_hits_at_ten_tail)) / 2
         cumulative_hits_three = (sum(average_hits_at_three_head) / len(average_hits_at_three_head)
-                               + sum(average_hits_at_three_tail) / len(average_hits_at_three_tail)) / 2
+                                 + sum(average_hits_at_three_tail) / len(average_hits_at_three_tail)) / 2
         cumulative_hits_one = (sum(average_hits_at_one_head) / len(average_hits_at_one_head)
                                + sum(average_hits_at_one_tail) / len(average_hits_at_one_tail)) / 2
         cumulative_mean_rank = (sum(average_mean_rank_head) / len(average_mean_rank_head)

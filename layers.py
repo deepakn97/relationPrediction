@@ -8,6 +8,7 @@ from torch.autograd import Variable
 
 CUDA = torch.cuda.is_available()
 
+
 class ConvKB(nn.Module):
     def __init__(self, input_dim, input_seq_len, in_channels, out_channels, drop_prob, alpha_leaky):
         super().__init__()
@@ -17,7 +18,7 @@ class ConvKB(nn.Module):
         self.dropout = nn.Dropout(drop_prob)
         self.non_linearity = nn.ReLU()
         self.fc_layer = nn.Linear((input_dim) * out_channels, 1)
-        
+
         nn.init.xavier_uniform_(self.fc_layer.weight, gain=1.414)
         nn.init.xavier_uniform_(self.conv_layer.weight, gain=1.414)
 
@@ -36,7 +37,7 @@ class ConvKB(nn.Module):
         input_fc = out_conv.squeeze(-1).view(batch_size, -1)
         output = self.fc_layer(input_fc)
         return output
-    
+
 
 class SpecialSpmmFunctionFinal(torch.autograd.Function):
     """Special function for only sparse region backpropataion layer."""

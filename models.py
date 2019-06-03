@@ -44,8 +44,8 @@ class SpGAT(nn.Module):
                                              concat=False
                                              )
 
-    def forward(self, Corpus_, batch_inputs, entity_embeddings, relation_embed, 
-            edge_list, edge_type, edge_embed, edge_list_nhop, edge_type_nhop):
+    def forward(self, Corpus_, batch_inputs, entity_embeddings, relation_embed,
+                edge_list, edge_type, edge_embed, edge_list_nhop, edge_type_nhop):
         x = entity_embeddings
 
         edge_embed_nhop = relation_embed[
@@ -69,7 +69,6 @@ class SpGAT(nn.Module):
 class SpKBGATModified(nn.Module):
     def __init__(self, initial_entity_emb, initial_relation_emb, entity_out_dim, relation_out_dim,
                  drop_GAT, alpha, nheads_GAT):
-
         '''Sparse version of KBGAT
         entity_in_dim -> Entity Input Embedding dimensions
         entity_out_dim  -> Entity Output Embedding dimensions, passed as a list
@@ -107,15 +106,15 @@ class SpKBGATModified(nn.Module):
         self.sparse_gat_1 = SpGAT(self.num_nodes, self.entity_in_dim, self.entity_out_dim_1, self.relation_dim,
                                   self.drop_GAT, self.alpha, self.nheads_GAT_1)
 
-        self.W_entities = nn.Parameter(torch.zeros(size=(self.entity_in_dim, self.entity_out_dim_1 * self.nheads_GAT_1)))
+        self.W_entities = nn.Parameter(torch.zeros(
+            size=(self.entity_in_dim, self.entity_out_dim_1 * self.nheads_GAT_1)))
         nn.init.xavier_uniform_(self.W_entities.data, gain=1.414)
-        
 
     def forward(self, Corpus_, adj, batch_inputs, train_indices_nhop):
         # getting edge list
         edge_list = adj[0]
         edge_type = adj[1]
-        
+
         edge_list_nhop = torch.cat(
             (train_indices_nhop[:, 3].unsqueeze(-1), train_indices_nhop[:, 0].unsqueeze(-1)), dim=1).t()
         edge_type_nhop = torch.cat(
@@ -138,7 +137,7 @@ class SpKBGATModified(nn.Module):
         #     self.relation_embeddings.data, p=2, dim=1)
 
         out_entity_1, out_relation_1 = self.sparse_gat_1(
-            Corpus_, batch_inputs, self.entity_embeddings, self.relation_embeddings, 
+            Corpus_, batch_inputs, self.entity_embeddings, self.relation_embeddings,
             edge_list, edge_type, edge_embed, edge_list_nhop, edge_type_nhop)
 
         mask_indices = torch.unique(batch_inputs[:, 2]).cuda()
@@ -150,7 +149,7 @@ class SpKBGATModified(nn.Module):
             mask.unsqueeze(-1).expand_as(out_entity_1) * out_entity_1
 
         out_entity_1 = F.normalize(out_entity_1, p=2, dim=1)
-        
+
         self.final_entity_embeddings.data = out_entity_1.data
         self.final_relation_embeddings.data = out_relation_1.data
 
