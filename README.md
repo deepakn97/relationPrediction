@@ -82,7 +82,8 @@ When running for first time, run preparation script with:
         $ python3 main.py --data ./data/FB15k-237/ --epochs_gat 3000 --epochs_conv 150 --weight_decay_gat 0.00001 --get_2hop True --partial_2hop True --batch_size_gat 272115 --margin 1 --out_channels 50 --drop_conv 0.3
         
 ### Citation
-        
+Please cite the following paper if you use this code in your work.
+
         @InProceedings{KBGAT2019,
         author = "Nathani, Deepak and Chauhan, Jatin and Sharma, Charu and Kaul, Manohar",
         title = "Learning Attention-based Embeddings for Relation Prediction in Knowledge Graphs",
@@ -91,5 +92,7 @@ When running for first time, run preparation script with:
         publisher = "Association for Computational Linguistics",
         location = "Florence, Italy",
         }
+        
+For any clarification, comments, or suggestions please create an issue or contact deepakn1019@gmail.com
 
         
