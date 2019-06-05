@@ -12,7 +12,7 @@ Please download miniconda from above link and create an environment using the fo
 Activate the environment before executing the program as follows:
 
         source activate pytorch35
-#### Dataset
+### Dataset
 We used five different datasets for evaluating our model. All the datasets and their folder names are given below.
 - Freebase: FB15k-237
 - Wordnet: WN18RR
@@ -80,5 +80,16 @@ When running for first time, run preparation script with:
 * **Freebase**
 
         $ python3 main.py --data ./data/FB15k-237/ --epochs_gat 3000 --epochs_conv 150 --weight_decay_gat 0.00001 --get_2hop True --partial_2hop True --batch_size_gat 272115 --margin 1 --out_channels 50 --drop_conv 0.3
+        
+### Citation
+        
+        @InProceedings{KBGAT2019,
+        author = "Nathani, Deepak and Chauhan, Jatin and Sharma, Charu and Kaul, Manohar",
+        title = "Learning Attention-based Embeddings for Relation Prediction in Knowledge Graphs",
+        booktitle = "Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics",
+        year = "2019",
+        publisher = "Association for Computational Linguistics",
+        location = "Florence, Italy",
+        }
 
         
