@@ -1,8 +1,6 @@
 # Learning Attention-based Embeddings for Relation Prediction in Knowledge Graphs
 
-This program provides the implementation of the attention based model for the knowledge base completion task.
-
-## Usage
+Source code for our [ACL 2019](http://www.acl2019.org/EN/index.xhtml) paper: [Learning Attention-based Embeddings for Relation Prediction in Knowledge Graphs](https://arxiv.org/abs/1906.01195)
 
 ### Requirements
 - [conda](https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh)
@@ -14,12 +12,19 @@ Please download miniconda from above link and create an environment using the fo
 Activate the environment before executing the program as follows:
 
         source activate pytorch35
+#### Dataset
+We used five different datasets for evaluating our model. All the datasets and their folder names are given below.
+- Freebase: FB15k-237
+- Wordnet: WN18RR
+- Nell: NELL-995
+- Kinship: kinship
+- UMLS: umls
 
 ### Training
 
 **Parameters:** 
 
-`--data`: Specify the folder of the dataset. 
+`--data`: Specify the folder name of the dataset. 
 
 `--epochs_gat`: Number of epochs for gat training.
 
