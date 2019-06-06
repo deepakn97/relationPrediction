@@ -97,7 +97,6 @@ class SpGraphAttentionLayer(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
         self.leakyrelu = nn.LeakyReLU(self.alpha)
-        self.special_spmm = SpecialSpmm()
         self.special_spmm_final = SpecialSpmmFinal()
 
     def forward(self, input, edge, edge_embed, edge_list_nhop, edge_embed_nhop):
