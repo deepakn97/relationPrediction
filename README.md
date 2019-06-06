@@ -1,8 +1,6 @@
 # Learning Attention-based Embeddings for Relation Prediction in Knowledge Graphs
 
-This program provides the implementation of the attention based model for the knowledge base completion task.
-
-## Usage
+Source code for our [ACL 2019](http://www.acl2019.org/EN/index.xhtml) paper: [Learning Attention-based Embeddings for Relation Prediction in Knowledge Graphs](https://arxiv.org/abs/1906.01195)
 
 ### Requirements
 - [conda](https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh)
@@ -14,12 +12,19 @@ Please download miniconda from above link and create an environment using the fo
 Activate the environment before executing the program as follows:
 
         source activate pytorch35
+### Dataset
+We used five different datasets for evaluating our model. All the datasets and their folder names are given below.
+- Freebase: FB15k-237
+- Wordnet: WN18RR
+- Nell: NELL-995
+- Kinship: kinship
+- UMLS: umls
 
 ### Training
 
 **Parameters:** 
 
-`--data`: Specify the folder of the dataset. 
+`--data`: Specify the folder name of the dataset. 
 
 `--epochs_gat`: Number of epochs for gat training.
 
@@ -75,5 +80,19 @@ When running for first time, run preparation script with:
 * **Freebase**
 
         $ python3 main.py --data ./data/FB15k-237/ --epochs_gat 3000 --epochs_conv 150 --weight_decay_gat 0.00001 --get_2hop True --partial_2hop True --batch_size_gat 272115 --margin 1 --out_channels 50 --drop_conv 0.3
+        
+### Citation
+Please cite the following paper if you use this code in your work.
+
+        @InProceedings{KBGAT2019,
+        author = "Nathani, Deepak and Chauhan, Jatin and Sharma, Charu and Kaul, Manohar",
+        title = "Learning Attention-based Embeddings for Relation Prediction in Knowledge Graphs",
+        booktitle = "Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics",
+        year = "2019",
+        publisher = "Association for Computational Linguistics",
+        location = "Florence, Italy",
+        }
+        
+For any clarification, comments, or suggestions please create an issue or contact deepakn1019@gmail.com
 
         
