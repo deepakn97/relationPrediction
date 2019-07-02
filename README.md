@@ -22,9 +22,9 @@ We used five different datasets for evaluating our model. All the datasets and t
 
 ### Training
 
-**Parameters:** 
+**Parameters:**
 
-`--data`: Specify the folder name of the dataset. 
+`--data`: Specify the folder name of the dataset.
 
 `--epochs_gat`: Number of epochs for gat training.
 
@@ -43,11 +43,11 @@ We used five different datasets for evaluating our model. All the datasets and t
 `--partial_2hop`: Use only 1 2-hop neighbor per node for training.
 
 `--output_folder`: Path of output folder for saving models.
-  
+
 `--batch_size_gat`: Batch size for gat model.
 
 `--valid_invalid_ratio_gat`: Ratio of valid to invalid triples for GAT training.
-  
+
 `--drop_gat`: Dropout probability for attention layer.
 
 `--alpha`: LeakyRelu alphas for attention layer.
@@ -66,7 +66,7 @@ We used five different datasets for evaluating our model. All the datasets and t
 
 `--drop_conv`: Dropout probability for conv layer.
 
-### Reproducing results 
+### Reproducing results
 
 To reproduce the results published in the paper:      
 When running for first time, run preparation script with:
@@ -74,13 +74,13 @@ When running for first time, run preparation script with:
         $ sh prepare.sh
 
 * **Wordnet**
-        
+
         $ python3 main.py --get_2hop True
 
 * **Freebase**
 
-        $ python3 main.py --data ./data/FB15k-237/ --epochs_gat 3000 --epochs_conv 150 --weight_decay_gat 0.00001 --get_2hop True --partial_2hop True --batch_size_gat 272115 --margin 1 --out_channels 50 --drop_conv 0.3
-        
+        $ python3 main.py --data ./data/FB15k-237/ --epochs_gat 3000 --epochs_conv 150 --weight_decay_gat 0.00001 --get_2hop True --partial_2hop True --batch_size_gat 272115 --margin 1 --out_channels 50 --drop_conv 0.3 --output_folder ./checkpoints/fb/out/
+
 ### Citation
 Please cite the following paper if you use this code in your work.
 
@@ -92,7 +92,5 @@ Please cite the following paper if you use this code in your work.
         publisher = "Association for Computational Linguistics",
         location = "Florence, Italy",
         }
-        
-For any clarification, comments, or suggestions please create an issue or contact deepakn1019@gmail.com
 
-        
+For any clarification, comments, or suggestions please create an issue or contact deepakn1019@gmail.com

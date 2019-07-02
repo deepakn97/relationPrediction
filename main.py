@@ -47,7 +47,7 @@ def parse_args():
     args.add_argument("-u2hop", "--use_2hop", type=bool, default=True)
     args.add_argument("-p2hop", "--partial_2hop", type=bool, default=False)
     args.add_argument("-outfolder", "--output_folder",
-                      default="out", help="Folder name to save the models.")
+                      default="./checkpoints/wn/out/", help="Folder name to save the models.")
 
     # arguments for GAT
     args.add_argument("-b_gat", "--batch_size_gat", type=int,
@@ -276,7 +276,7 @@ def train_conv(args):
         model_gat.cuda()
 
     model_gat.load_state_dict(torch.load(
-        './checkpoints/wn/{}/trained_{}.pth'.format(args.output_folder, args.epochs_gat - 1)))
+        '{}trained_{}.pth'.format(args.output_folder, args.epochs_gat - 1)))
     model_conv.final_entity_embeddings = model_gat.final_entity_embeddings
     model_conv.final_relation_embeddings = model_gat.final_relation_embeddings
 
@@ -347,20 +347,15 @@ def train_conv(args):
         epoch_losses.append(sum(epoch_loss) / len(epoch_loss))
 
         save_model(model_conv, args.data, epoch,
-                   args.output_folder + "/conv")
+                   args.output_folder + "conv")
 
 
 def evaluate_conv(args, unique_entities):
     model_conv = SpKBGATConvOnly(entity_embeddings, relation_embeddings, args.entity_out_dim, args.entity_out_dim,
                                  args.drop_GAT, args.drop_conv, args.alpha, args.alpha_conv,
                                  args.nheads_GAT, args.out_channels)
-
-    if 'FB' in args.data:
-        model_conv.load_state_dict(torch.load(
-            './checkpoints/fb/{0}/conv/trained_{1}.pth'.format(args.output_folder, args.epochs_conv - 1)))
-    else:
-        model_conv.load_state_dict(torch.load(
-            './checkpoints/wn/{0}/conv/trained_{1}.pth'.format(args.output_folder, args.epochs_conv - 1)))
+    model_conv.load_state_dict(torch.load(
+        '{0}conv/trained_{1}.pth'.format(args.output_folder, args.epochs_conv - 1)))
 
     model_conv.cuda()
     with torch.no_grad():

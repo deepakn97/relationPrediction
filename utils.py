@@ -24,36 +24,10 @@ CUDA = torch.cuda.is_available()
 
 
 def save_model(model, name, epoch, folder_name):
-    if 'FB' in name:
-        print("Saving Model")
-        torch.save(model.state_dict(),
-                   ("./checkpoints/fb/" + folder_name + "/trained_{}.pth").format(epoch))
-        print("Done saving freebase Model")
-    elif 'WN' in name:
-        print("Saving Model")
-        torch.save(model.state_dict(),
-                   ("./checkpoints/wn/" + folder_name + "/trained_{}.pth").format(epoch))
-        print("Done saving wordnet Model")
-
-    elif 'NELL' in name:
-        print("Saving Model")
-        torch.save(model.state_dict(),
-                   ("./checkpoints/nell/" + folder_name + "/trained_{}.pth").format(epoch))
-        print("Done saving nell Model")
-
-    elif 'kinship' in name:
-        print("Saving Model")
-        torch.save(model.state_dict(),
-                   ("./checkpoints/kinship/" + folder_name + "/trained_{}.pth").format(epoch))
-        print("Done saving kinship Model")
-
-    elif 'umls' in name:
-        print("Saving Model")
-        torch.save(model.state_dict(),
-                   ("./checkpoints/umls/" + folder_name + "/trained_{}.pth").format(epoch))
-        print("Done saving kinship Model")
-    else:
-        raise Exception("No dataset by the name")
+    print("Saving Model")
+    torch.save(model.state_dict(),
+               (folder_name + "trained_{}.pth").format(epoch))
+    print("Done saving Model")
 
 
 gat_loss_func = nn.MarginRankingLoss(margin=0.5)
