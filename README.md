@@ -1,4 +1,6 @@
 # Learning Attention-based Embeddings for Relation Prediction in Knowledge Graphs
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/learning-attention-based-embeddings-for-1/knowledge-graph-completion-on-fb15k-237)](https://paperswithcode.com/sota/knowledge-graph-completion-on-fb15k-237?p=learning-attention-based-embeddings-for-1)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/learning-attention-based-embeddings-for-1/knowledge-graph-completion-on-wn18rr)](https://paperswithcode.com/sota/knowledge-graph-completion-on-wn18rr?p=learning-attention-based-embeddings-for-1)
 
 Source code for our [ACL 2019](http://www.acl2019.org/EN/index.xhtml) paper: [Learning Attention-based Embeddings for Relation Prediction in Knowledge Graphs](https://arxiv.org/abs/1906.01195)
 Blog [link](https://deepakn97.github.io/blog/2019/Knowledge-Base-Relation-Prediction/) for this publication.
