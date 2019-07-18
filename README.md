@@ -1,6 +1,7 @@
 # Learning Attention-based Embeddings for Relation Prediction in Knowledge Graphs
 
 Source code for our [ACL 2019](http://www.acl2019.org/EN/index.xhtml) paper: [Learning Attention-based Embeddings for Relation Prediction in Knowledge Graphs](https://arxiv.org/abs/1906.01195)
+Blog [link](https://deepakn97.github.io/blog/2019/Knowledge-Base-Relation-Prediction/) for this publication.
 
 ### Requirements
 - [conda](https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh)
