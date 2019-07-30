@@ -54,13 +54,13 @@ def parse_args():
                       default=86835, help="Batch size for GAT")
     args.add_argument("-neg_s_gat", "--valid_invalid_ratio_gat", type=int,
                       default=2, help="Ratio of valid to invalid triples for GAT training")
-    args.add_argument("-drop_GAT", "--drop_GAT", type=float,
+    args.add_argument("-drop_GAT", "--drop_GAT", type=float, 
                       default=0.3, help="Dropout probability for SpGAT layer")
     args.add_argument("-alpha", "--alpha", type=float,
                       default=0.2, help="LeakyRelu alphs for SpGAT layer")
-    args.add_argument("-out_dim", "--entity_out_dim", type=float,
+    args.add_argument("-out_dim", "--entity_out_dim", type=int, nargs='+',
                       default=[100, 200], help="Entity output embedding dimensions")
-    args.add_argument("-h_gat", "--nheads_GAT", type=int,
+    args.add_argument("-h_gat", "--nheads_GAT", type=int, nargs='+',
                       default=[2, 2], help="Multihead attention SpGAT")
     args.add_argument("-margin", "--margin", type=float,
                       default=5, help="Margin used in hinge loss")
@@ -276,7 +276,7 @@ def train_conv(args):
         model_gat.cuda()
 
     model_gat.load_state_dict(torch.load(
-        '{}trained_{}.pth'.format(args.output_folder, args.epochs_gat - 1)))
+        '{}/trained_{}.pth'.format(args.output_folder, args.epochs_gat - 1)))
     model_conv.final_entity_embeddings = model_gat.final_entity_embeddings
     model_conv.final_relation_embeddings = model_gat.final_relation_embeddings
 
@@ -358,6 +358,7 @@ def evaluate_conv(args, unique_entities):
         '{0}conv/trained_{1}.pth'.format(args.output_folder, args.epochs_conv - 1)))
 
     model_conv.cuda()
+    model_conv.eval()
     with torch.no_grad():
         Corpus_.get_validation_pred(args, model_conv, unique_entities)
 
