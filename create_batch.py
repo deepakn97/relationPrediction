@@ -330,7 +330,7 @@ class Corpus:
                 nhop_list = node_neighbors[source][nbd_size]
 
                 for i, tup in enumerate(nhop_list):
-                    if(args.partial_2hop and i >= 1):
+                    if(args.partial_2hop and i >= 2):
                         break
 
                     count += 1
@@ -343,7 +343,7 @@ class Corpus:
         source_embeds = entity_embeddings[batch_inputs[:, 0]]
         relation_embeds = relation_embeddings[batch_inputs[:, 1]]
         tail_embeds = entity_embeddings[batch_inputs[:, 2]]
-        x = source_embeds - tail_embeds
+        x = source_embeds + relation_embed - tail_embeds
         x = torch.norm(x, p=1, dim=1)
         return x
 

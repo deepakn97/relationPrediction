@@ -54,7 +54,7 @@ def parse_args():
                       default=86835, help="Batch size for GAT")
     args.add_argument("-neg_s_gat", "--valid_invalid_ratio_gat", type=int,
                       default=2, help="Ratio of valid to invalid triples for GAT training")
-    args.add_argument("-drop_GAT", "--drop_GAT", type=float, 
+    args.add_argument("-drop_GAT", "--drop_GAT", type=float,
                       default=0.3, help="Dropout probability for SpGAT layer")
     args.add_argument("-alpha", "--alpha", type=float,
                       default=0.2, help="LeakyRelu alphs for SpGAT layer")
@@ -156,7 +156,7 @@ def batch_gat_loss(gat_loss_func, train_indices, entity_embed, relation_embed):
     x = source_embeds + relation_embeds - tail_embeds
     neg_norm = torch.norm(x, p=1, dim=1)
 
-    y = -torch.ones(int(args.valid_invalid_ratio_gat) * len_pos_triples).cuda()
+    y = torch.ones(int(args.valid_invalid_ratio_gat) * len_pos_triples).cuda()
 
     loss = gat_loss_func(pos_norm, neg_norm, y)
     return loss
