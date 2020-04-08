@@ -276,7 +276,7 @@ def train_conv(args):
         model_gat.cuda()
 
     model_gat.load_state_dict(torch.load(
-        '{}/trained_{}.pth'.format(args.output_folder, args.epochs_gat - 1)))
+        '{}/trained_{}.pth'.format(args.output_folder, args.epochs_gat - 1)), strict=False)
     model_conv.final_entity_embeddings = model_gat.final_entity_embeddings
     model_conv.final_relation_embeddings = model_gat.final_relation_embeddings
 
@@ -355,7 +355,7 @@ def evaluate_conv(args, unique_entities):
                                  args.drop_GAT, args.drop_conv, args.alpha, args.alpha_conv,
                                  args.nheads_GAT, args.out_channels)
     model_conv.load_state_dict(torch.load(
-        '{0}conv/trained_{1}.pth'.format(args.output_folder, args.epochs_conv - 1)))
+        '{0}conv/trained_{1}.pth'.format(args.output_folder, args.epochs_conv - 1)), strict=False)
 
     model_conv.cuda()
     model_conv.eval()
