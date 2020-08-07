@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 
-def read_entity_from_id(filename='./data/WN18RR/entity2id.txt'):
+def read_entity_from_id(filename='/content/data/WN18RR/entity2id.txt'):
     entity2id = {}
     with open(filename, 'r') as f:
         for line in f:
@@ -14,7 +14,7 @@ def read_entity_from_id(filename='./data/WN18RR/entity2id.txt'):
     return entity2id
 
 
-def read_relation_from_id(filename='./data/WN18RR/relation2id.txt'):
+def read_relation_from_id(filename='/content/data/WN18RR/relation2id.txt'):
     relation2id = {}
     with open(filename, 'r') as f:
         for line in f:
@@ -85,7 +85,7 @@ def load_data(filename, entity2id, relation2id, is_unweigted=False, directed=Tru
     return triples_data, (rows, cols, data), list(unique_entities)
 
 
-def build_data(path='./data/WN18RR/', is_unweigted=False, directed=True):
+def build_data(path='/content/data/WN18RR/', is_unweigted=False, directed=True):
     entity2id = read_entity_from_id(path + 'entity2id.txt')
     relation2id = read_relation_from_id(path + 'relation2id.txt')
 
